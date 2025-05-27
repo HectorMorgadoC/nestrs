@@ -1,14 +1,12 @@
 pub(crate) mod process_handler {
 
-    use actix_web::{web,HttpResponse, Responder};
+    use actix_web::{web,HttpResponse, Responder,get,post,patch,delete};
     use uuid::Uuid;
     use crate::app::module::process::process_model::process_model::CreateUpdateProcess;
 
     use super::super::process_service::process_service::ProcessService;
 
-    
-
-
+    #[get("/process")]
     pub(crate) async fn get_all_process(service: web::Data<ProcessService>) -> impl Responder {
         match service.get_all().await {
             Ok(value) => {
@@ -21,6 +19,7 @@ pub(crate) mod process_handler {
         }
     }
 
+    #[get("/process/{id}")]
     pub(crate) async fn get_find_by_id_process(service: web::Data<ProcessService>,id: web::Path<Uuid>) -> impl Responder {
         match service.get_find_by_id(id.into_inner()).await {
             Ok(value) => {
@@ -33,6 +32,7 @@ pub(crate) mod process_handler {
         }
     }
 
+    #[post("/process")]
     pub(crate) async fn create_process(service: web::Data<ProcessService>, dto: web::Json<CreateUpdateProcess>) -> impl Responder {
         
         match service.create(dto.into_inner()).await {
@@ -46,6 +46,7 @@ pub(crate) mod process_handler {
         }
     }
 
+    #[patch("/process/{id}")]
     pub(crate) async fn update_process(
         service: web::Data<ProcessService>,
         dto: web::Json<CreateUpdateProcess>,
@@ -64,6 +65,7 @@ pub(crate) mod process_handler {
         }
     }
 
+    #[delete("/process/{id}")]
     pub(crate) async fn delete_process(
         service: web::Data<ProcessService>,
         id: web::Path<Uuid>
