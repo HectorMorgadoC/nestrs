@@ -1,8 +1,8 @@
 pub(crate) mod process_handler {
 
-    use actix_web::{web,HttpResponse, Responder,get,post,patch,delete};
+    use actix_web::{delete, get, patch, post, web, HttpResponse, Responder, ResponseError};
     use uuid::Uuid;
-    use crate::app::module::process::process_model::process_model::CreateUpdateProcess;
+    use crate::app::{module::process::process_model::process_model::CreateUpdateProcess};
 
     use super::super::process_service::process_service::ProcessService;
 
@@ -14,7 +14,7 @@ pub(crate) mod process_handler {
             },
             Err(err) => {   
                 println!("Error get all process {err}");
-                HttpResponse::InternalServerError().finish()
+                err.error_response()
             }
         }
     }
@@ -27,7 +27,7 @@ pub(crate) mod process_handler {
             },
             Err(err) => {
                 println!("Error get find by id process {err}");
-                HttpResponse::InternalServerError().finish()
+                err.error_response()
             }
         }
     }
@@ -41,7 +41,7 @@ pub(crate) mod process_handler {
             },
             Err(err) => {
                 println!("Error create new process {err}");
-                HttpResponse::InternalServerError().finish()
+                err.error_response()
             }
         }
     }
@@ -60,7 +60,7 @@ pub(crate) mod process_handler {
             },
             Err(err) => {
                 println!("Error update process {err}");
-                HttpResponse::InternalServerError().finish()
+                err.error_response()
             }
         }
     }
@@ -81,7 +81,7 @@ pub(crate) mod process_handler {
             },
             Err(err) => {
                 println!("Error delete process {err}");
-                HttpResponse::InternalServerError().finish()
+                err.error_response()
             }
         }
     }
