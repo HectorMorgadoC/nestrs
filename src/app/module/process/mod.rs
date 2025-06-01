@@ -1,4 +1,3 @@
-
 use actix_web::web;
 use sqlx::PgPool;
 
@@ -9,8 +8,6 @@ mod process_router;
 mod process_handler;
 
 use process_repository::process_repository::ProcessRepository;
-
-
 
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.configure(process_router::process_router::configure_routes);
