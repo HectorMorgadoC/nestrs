@@ -3,7 +3,7 @@ services:
     container_name: ${MONGO_DB_NAME}
     image: mongo:8.0.9
     volumes:
-      - poke-vol:/data/db
+      - team:/data/db
     ports:
       - 27017:27017
     restart: always
@@ -13,5 +13,5 @@ services:
     command: ['--auth']
 
 volumes:
-  poke-vol:
+  team:
     external: false

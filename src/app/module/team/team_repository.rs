@@ -1,5 +1,6 @@
 pub mod team_repository {
-    use mongodb::{results::InsertOneResult, Client, Collection, Database};
+    use futures::TryStreamExt;
+    use mongodb::{bson::{doc, oid::ObjectId}, results::InsertOneResult, Database};
     use super::super::team_model::Team;
     use crate::app::shared::error::error_app::error_app::AppError;
 
@@ -13,7 +14,7 @@ pub mod team_repository {
             Self { database }
         }
 
-        pub async fn create_team(&self,dto: Team) -> Result<InsertOneResult,AppError> {
+        pub async fn create(&self,dto: Team) -> Result<InsertOneResult,AppError> {
 
             let collection = self.database.collection::<Team>("team");
 
@@ -24,73 +25,67 @@ pub mod team_repository {
 
         }
 
-        /*
-        pub async fn get_user(&self, id: &String) -> Result<User, Error> {
-            let obj_id = ObjectId::parse_str(id).unwrap();
-            let filter = doc! {"_id": obj_id};
-            let user_detail = self
-                .col
-                .find_one(filter, None)
-                .await
-                .ok()
-                .expect("Error getting user's detail");
-            Ok(user_detail.unwrap())
+        pub async fn find_all(&self) -> Result<Vec<Team>,AppError> {
+            let collection = self.database.collection::<Team>("team");
+            let mut list_team_result: Vec<Team> = vec![];
+
+            match collection.find(None, None).await {
+                Ok(mut value) => {
+                    while let Ok(Some(result)) = value.try_next().await.map(|value| value) {
+                        list_team_result.push(result);
+                    } 
+                    Ok(list_team_result)
+                },
+                Err(err) => {Err(AppError::DatabaseError(err.to_string()))}
+            }
         }
 
-        pub async fn update_user(&self, id: &String, new_user: User) -> Result<UpdateResult, Error> {
-            let obj_id = ObjectId::parse_str(id).unwrap();
-            let filter = doc! {"_id": obj_id};
-            let new_doc = doc! {
-                "$set":
-                    {
-                        "id": new_user.id,
-                        "name": new_user.name,
-                        "location": new_user.location,
-                        "title": new_user.title
-                    },
-            };
-            let updated_doc = self
-                .col
-                .update_one(filter, new_doc, None)
-                .await
-                .ok()
-                .expect("Error updating user");
-            Ok(updated_doc)
+        pub async fn find_name(&self,param: String) -> Result<Vec<Team>,AppError> {
+            let collection = self.database.collection::<Team>("team");
+            let mut list_team_result: Vec<Team> = vec![];
+
+            match collection.find(doc!{"name": param}, None).await {
+                Ok(mut value) => {
+                    while let Ok(Some(result)) = value.try_next().await.map(|value| value) {
+                        list_team_result.push(result);
+                    } 
+                    Ok(list_team_result)
+                },
+                Err(err) => {Err(AppError::DatabaseError(err.to_string()))}
+            }
         }
 
-        pub async fn delete_user(&self, id: &String) -> Result<DeleteResult, Error> {
-            let obj_id = ObjectId::parse_str(id).unwrap();
-            let filter = doc! {"_id": obj_id};
-            let user_detail = self
-                .col
-                .delete_one(filter, None)
-                .await
-                .ok()
-                .expect("Error deleting user");
-            Ok(user_detail)
+        pub async fn update(&self,dto: Team,param: String) -> Result<u64,AppError> {
+            let collection = self.database.collection::<Team>("team");
+            let obj_id = ObjectId::parse_str(param).unwrap();
+            let filter = doc!{ "_id":obj_id };
+            let price: u32 = dto.price as u32;
+            let update = doc! {"$set": doc! {"price": price, "name": dto.name } };
+
+            match collection.update_one(filter, update, None).await {
+                Ok(value) => {
+                    Ok(value.matched_count)
+                },
+                Err(err) => {
+                    Err(AppError::DatabaseError(err.to_string()))
+                }
+            }
         }
 
-        pub async fn get_all_users(&self) -> Result<Vec<User>, Error> {
-        let mut cursors = self
-            .col
-            .find(None, None)
-            .await
-            .ok()
-            .expect("Error getting list of users");
-        let mut users: Vec<User> = Vec::new();
-        while let Some(user) = cursors
-            .try_next()
-            .await
-            .ok()
-            .expect("Error mapping through cursor")
-        {
-            users.push(user)
-        }
-        Ok(users)
-        }
+        pub async fn delete(&self,param: String) -> Result<u64,AppError> {
+            let collection = self.database.collection::<Team>("team");
+            let obj_id = ObjectId::parse_str(param).unwrap();
+            let filter = doc! {"$and": [ doc! {"_id": obj_id } ]};
 
-         */
+            match collection.delete_one(filter, None).await {
+                Ok(value) => {
+                    Ok(value.deleted_count)
+                },
+                Err(err) => {
+                    Err(AppError::DatabaseError(err.to_string()))
+                }
+            }
+        }
         
-
     }
 }

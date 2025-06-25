@@ -8,7 +8,7 @@ use crate::app::module::configure_all_modules;
 #[actix_web::main]
 async fn main() -> Result<()>{
     dotenv::dotenv().ok();
-    let port: u16 = 8080;
+    let port: u16 = 8081;
     let adress: &str = "127.0.0.1";
 
     //postgres://<username>:<password>@<host>:<port>/<database_name>

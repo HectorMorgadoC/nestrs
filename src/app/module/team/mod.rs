@@ -1,10 +1,9 @@
 use actix_web::web;
-use team_model::Team;
-use mongodb::{Collection, Database};
+use mongodb::Database;
 use team_repository::team_repository::TeamRepository;
 
 mod team_model;
-pub mod team_handler;
+mod team_handler;
 mod team_repository;
 mod team_service;
 mod team_routes;

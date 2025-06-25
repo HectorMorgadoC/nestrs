@@ -1,32 +1,5 @@
-use actix_web::{post, web, HttpResponse, Responder};
-use mongodb::{bson::doc, Database};
+use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
 use super::{super::team::team_model::Team, team_service::team_service::TeamService};
-use futures::TryStreamExt;
-
-pub fn init_routes(cfg: &mut web::ServiceConfig) {
-    cfg.service(
-        web::scope("/teams")
-            //.route("", web::post().to(create_team))
-            .route("", web::get().to(get_teams))
-    );
-}
-
-
-/* 
-async fn create_team(db: web::Data<Database>, team: web::Json<Team>) -> impl Responder {
-    let collection = db.collection::<Team>("teams");
-    let mut new_team = team.into_inner();
-    new_team.id = None;
-
-    match collection.insert_one(new_team, None).await {
-        Ok(result) => HttpResponse::Ok().json(result),
-        Err(e) => {
-            println!("Insert error: {:?}", e);
-            HttpResponse::InternalServerError().body("Error inserting team")
-        }
-    }
-}
-*/
 
 #[post("/team")]
 pub async fn create_team(service: web::Data<TeamService>, dto: web::Json<Team>) -> impl Responder {
@@ -39,20 +12,60 @@ pub async fn create_team(service: web::Data<TeamService>, dto: web::Json<Team>) 
     }
 }
 
-async fn get_teams(db: web::Data<Database>) -> impl Responder {
-    let collection = db.collection::<Team>("teams");
-
-    match collection.find(None, None).await {
-        Ok(mut cursor) => {
-            let mut teams = Vec::new();
-            while let Some(team) = cursor.try_next().await.unwrap_or(None) {
-                teams.push(team);
-            }
-            HttpResponse::Ok().json(teams)
+#[get("/team")]
+pub async fn get_find_all_teams(service: web::Data<TeamService>) -> impl Responder {
+    match service.find_all().await {
+        Ok(value) => {
+            HttpResponse::Ok().json(value)
+        },
+        Err(err) => {
+            println!("Err find all team: {}",err);
+            HttpResponse::Ok().body("Err pedit los equipos")
         }
-        Err(e) => {
-            println!("Find error: {:?}", e);
-            HttpResponse::InternalServerError().body("Error fetching teams")
+    }
+}
+
+#[get("/team/{name}")]
+pub async fn get_find_name_teams(service: web::Data<TeamService>, param: web::Path<String>) -> impl Responder {
+    match service.find_name(param.into_inner()).await {
+        Ok(value) => {
+            HttpResponse::Ok().json(value)
+        },
+        Err(err) => {
+            println!("Err find all team: {}",err);
+            HttpResponse::Ok().body("Err pedir los equipos por su nombre")
+        }
+    }
+
+}
+
+#[patch("/team/{id}")]
+pub async fn update_team(
+    service: web::Data<TeamService>,
+    dto: web::Json<Team>,
+    param: web::Path<String>
+) -> impl Responder {
+    match  service.update(dto.into_inner(), param.into_inner()).await {
+        Ok(value) => {
+            HttpResponse::Ok().body(value)
+        },
+        Err(err) => {
+            HttpResponse::Ok().body(format!("{:?}",err))
+        }
+    }
+}
+
+#[delete("/team/{id}")]
+pub async fn delete_team(
+    service: web::Data<TeamService>,
+    param: web::Path<String>
+) -> impl Responder {
+    match  service.delete(param.into_inner()).await {
+        Ok(value) => {
+            HttpResponse::Ok().body(value)
+        },
+        Err(err) => {
+            HttpResponse::Ok().body(format!("{:?}",err))
         }
     }
 }
